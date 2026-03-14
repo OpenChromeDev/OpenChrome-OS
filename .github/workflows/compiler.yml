@@ -1,1 +1,33 @@
+name: Build OpenChrome
+on: [push]
+
+jobs:
+  create-iso:
+    runs-on: ubuntu-latest
+    steps:
+      # Aggiornato alla v4 (Node.js 24)
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+          
+      - name: Prepara Ambiente
+        run: |
+          sudo apt update
+          sudo apt install -y squashfs-tools xorriso
+          
+      - name: Costruisci OpenChrome
+        run: |
+          # Diamo i permessi di esecuzione allo script
+          chmod +x build.sh
+          # Eseguiamo lo script build.sh
+          sudo ./build.sh
+          # Creiamo un file di test per confermare il successo
+          echo "OpenChrome Build del $(date) - Creato da Gabriele" > info_build.txt
+          
+      - name: Carica Risultati (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenChrome-Output
+          path: |
+            info_build.txt
+            *.iso
 
