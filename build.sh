@@ -1,22 +1,26 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
 
-echo "--- COSTRUZIONE STRUTTURA OPENCHROME ---"
+echo "--- FASE 1: PREPARAZIONE FILESYSTEM ---"
+mkdir -p live_root
+# Installiamo le basi direttamente nella cartella che diventerà l'OS
+# Nota: Questo passaggio è quello che occupa spazio reale
+apt-get update
+apt-get install -y --install-recommends cplo debootstrap
 
-# 1. Prepariamo le cartelle per la ISO vera
+# (Saltiamo la debootstrap completa per velocità in questo test e simuliamo i dati)
+# Creiamo una struttura che pesi un po' di più per testare la crescita
+dd if=/dev/zero of=live_root/system_data.bin bs=1M count=100 # Crea 100MB di dati vuoti
+
+echo "--- FASE 2: COMPRESSIONE SQUASHFS ---"
 mkdir -p iso_content/casper
-mkdir -p iso_content/boot/grub
+# Comprimiamo la cartella live_root nel formato Linux Live
+mksquashfs live_root iso_content/casper/filesystem.squashfs -comp xz
 
-# 2. Creiamo un "mini-sistema" di prova
-# (In un OS vero qui andrebbe il filesystem compresso)
-echo "Configurazione OpenChrome Flex di Gabriele" > iso_content/casper/filesystem.manifest
-
-# 3. Creazione della ISO
-# Usiamo impostazioni più serie per renderla "avviabile"
+echo "--- FASE 3: GENERAZIONE ISO ---"
 xorriso -as mkisofs \
     -V "OpenChrome_Flex" \
     -o openchrome_flex.iso \
-    -J -joliet-long -r \
-    iso_content/
+    -J -r iso_content/
 
-echo "--- ISO GENERATA ---"
+echo "--- BUILD TERMINATA ---"
