@@ -1,33 +1,20 @@
-name: Build OpenChrome
-on: [push]
+#!/bin/bash
+# Impedisce a Linux di fermarsi per fare domande
+export DEBIAN_FRONTEND=noninteractive
 
-jobs:
-  create-iso:
-    runs-on: ubuntu-latest
-    steps:
-      # Usiamo la v4 che usa Node.js 24, così il warning sparisce
-      - name: Checkout del codice
-        uses: actions/checkout@v4
-          
-      - name: Prepara Ambiente
-        run: |
-          sudo apt update
-          sudo apt install -y squashfs-tools xorriso
-          
-      - name: Costruisci OpenChrome
-        run: |
-          chmod +x build.sh
-          # Eseguiamo lo script
-          sudo ./build.sh
-          # Creiamo un file di prova per essere SICURI di vedere qualcosa negli Artifacts
-          echo "Build di OpenChrome completata con successo da Gabriele!" > successo.txt
-          
-      - name: Carica i file (Artifacts)
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenChrome-Pacchetto-Finale
-          path: |
-            successo.txt
-            *.iso
-            *.txt
+echo "--- INIZIO COSTRUZIONE OPENCHROME ---"
 
+# Aggiorna e installa i pezzi forti (Flex version)
+apt-get update
+apt-get install -y \
+    lxqt \
+    sddm \
+    network-manager \
+    chromium-browser \
+    --no-install-recommends
+
+# Personalizzazione di Gabriele
+echo "OpenChrome-Flex" > /etc/hostname
+echo "OpenChrome OS 1.0 - Creato da Gabriele" > /etc/issue
+
+echo "--- COSTRUZIONE COMPLETATA ---"
