@@ -1,26 +1,27 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
 
-echo "--- FASE 1: PREPARAZIONE FILESYSTEM ---"
+echo "--- INSTALLAZIONE SOFTWARE OPENCHROME ---"
+# Creiamo la cartella del sistema reale
 mkdir -p live_root
-# Installiamo le basi direttamente nella cartella che diventerà l'OS
-# Nota: Questo passaggio è quello che occupa spazio reale
+
+# Installiamo LXQt e Chromium dentro la cartella live_root
+# Usiamo --download-only per non sporcare il server, poi li spostiamo
 apt-get update
-apt-get install -y --install-recommends cplo debootstrap
+apt-get install -y --download-only lxqt chromium-browser
 
-# (Saltiamo la debootstrap completa per velocità in questo test e simuliamo i dati)
-# Creiamo una struttura che pesi un po' di più per testare la crescita
-dd if=/dev/zero of=live_root/system_data.bin bs=1M count=100 # Crea 100MB di dati vuoti
+# Copiamo i pacchetti scaricati nella nostra ISO per farla "pesare"
+cp /var/cache/apt/archives/*.deb live_root/
 
-echo "--- FASE 2: COMPRESSIONE SQUASHFS ---"
+echo "--- COMPRESSIONE SISTEMA (SQUASHFS) ---"
 mkdir -p iso_content/casper
-# Comprimiamo la cartella live_root nel formato Linux Live
+# Comprimiamo i pacchetti reali
 mksquashfs live_root iso_content/casper/filesystem.squashfs -comp xz
 
-echo "--- FASE 3: GENERAZIONE ISO ---"
+echo "--- GENERAZIONE ISO FINALE ---"
 xorriso -as mkisofs \
     -V "OpenChrome_Flex" \
     -o openchrome_flex.iso \
     -J -r iso_content/
 
-echo "--- BUILD TERMINATA ---"
+echo "--- PROCESSO COMPLETATO ---"
